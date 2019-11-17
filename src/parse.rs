@@ -877,7 +877,8 @@ impl<'a> FirstPass<'a> {
                 // we don't allow interruption by either empty lists or
                 // numbered lists starting at an index other than 1
                 !scan_empty_list(&suffix[ix..]) && (delim == b'*' || delim == b'-' || index == 1)
-        })
+            },
+        )
     }
 
     /// When start_ix is at the beginning of an HTML block of type 1 to 5,

@@ -1268,13 +1268,15 @@ mod test {
     use super::*;
     #[test]
     fn overflow_list() {
-        assert!(
-            scan_listitem(b"4444444444444444444444444444444444444444444444444444444444!").is_none()
-        );
+        assert!(scan_listitem(
+            b"4444444444444444444444444444444444444444444444444444444444!",
+            false
+        )
+        .is_none());
     }
 
     #[test]
     fn overflow_by_addition() {
-        assert!(scan_listitem(b"1844674407370955161615!").is_none());
+        assert!(scan_listitem(b"1844674407370955161615!", false).is_none());
     }
 }
