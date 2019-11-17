@@ -204,7 +204,10 @@ impl<'a> LineStart<'a> {
     /// Return value is the character, the start index, and the indent in spaces.
     /// For ordered list markers, the character will be one of b'.' or b')'. For
     /// bullet list markers, it will be one of b'-', b'+', or b'*'.
-    pub(crate) fn scan_list_marker(&mut self) -> Option<(u8, u64, usize)> {
+    pub(crate) fn scan_list_marker(
+        &mut self,
+        allow_nonstandard_taskitem: bool,
+    ) -> Option<(u8, u64, usize)> {
         let save = self.clone();
         let indent = self.scan_space_upto(3);
         if self.ix < self.bytes.len() {
@@ -222,6 +225,20 @@ impl<'a> LineStart<'a> {
                 self.ix += 1;
                 if self.scan_space(1) || self.is_at_eol() {
                     return self.finish_list_marker(c, 0, indent + 2);
+                }
+            } else if allow_nonstandard_taskitem && c == b'[' {
+                if self.ix + 3 < self.bytes.len() {
+                    let c2 = self.bytes[self.ix + 1];
+                    let c3 = self.bytes[self.ix + 2];
+                    let c4 = self.bytes[self.ix + 3];
+                    if (c2 == b' ' || c2 == b'x' || c2 == b'X')
+                        && c3 == b']'
+                        && is_ascii_whitespace_no_nl(c4)
+                    {
+                        // Pretend that the list item was started with '-' because that's how task
+                        // list items should start according to CommonMark.
+                        return Some((b'-', 0, indent + 2));
+                    }
                 }
             } else if c >= b'0' && c <= b'9' {
                 let start_ix = self.ix;
@@ -627,7 +644,10 @@ pub(crate) fn scan_empty_list(data: &[u8]) -> bool {
 }
 
 // return number of bytes scanned, delimiter, start index, and indent
-pub(crate) fn scan_listitem(bytes: &[u8]) -> Option<(usize, u8, usize, usize)> {
+pub(crate) fn scan_listitem(
+    bytes: &[u8],
+    allow_nonstandard_taskitem: bool,
+) -> Option<(usize, u8, usize, usize)> {
     let mut c = *bytes.get(0)?;
     let (w, start) = match c {
         b'-' | b'+' | b'*' => (1, 0),
@@ -638,6 +658,22 @@ pub(crate) fn scan_listitem(bytes: &[u8]) -> Option<(usize, u8, usize, usize)> {
                 return None;
             }
             (length + 1, start)
+        }
+        b'[' if allow_nonstandard_taskitem && bytes.len() >= 4 => {
+            let c2 = bytes[1];
+            let c3 = bytes[2];
+            let c4 = bytes[3];
+            if (c2 == b' ' || c2 == b'x' || c2 == b'X')
+                && c3 == b']'
+                && is_ascii_whitespace_no_nl(c4)
+            {
+                // Pretend that the list item was started with '-' because that's how task
+                // list items should start according to CommonMark.
+                c = b'-';
+                (3, 0)
+            } else {
+                return None;
+            }
         }
         _ => {
             return None;

@@ -333,7 +333,9 @@ impl<'a> FirstPass<'a> {
         // Process new containers
         loop {
             let container_start = start_ix + line_start.bytes_scanned();
-            if let Some((ch, index, indent)) = line_start.scan_list_marker() {
+            if let Some((ch, index, indent)) =
+                line_start.scan_list_marker(self.options.contains(Options::ENABLE_TASKLISTS))
+            {
                 let after_marker_index = start_ix + line_start.bytes_scanned();
                 self.continue_list(container_start, ch, index);
                 self.tree.append(Item {
@@ -868,11 +870,13 @@ impl<'a> FirstPass<'a> {
     /// Check whether we should allow a paragraph interrupt by lists. Only non-empty
     /// lists are allowed.
     fn interrupt_paragraph_by_list(&self, suffix: &[u8]) -> bool {
-        scan_listitem(suffix).map_or(false, |(ix, delim, index, _)| {
-            self.list_nesting > 0 ||
-            // we don't allow interruption by either empty lists or
-            // numbered lists starting at an index other than 1
-            !scan_empty_list(&suffix[ix..]) && (delim == b'*' || delim == b'-' || index == 1)
+        scan_listitem(suffix, self.options.contains(Options::ENABLE_TASKLISTS)).map_or(
+            false,
+            |(ix, delim, index, _)| {
+                self.list_nesting > 0 ||
+                // we don't allow interruption by either empty lists or
+                // numbered lists starting at an index other than 1
+                !scan_empty_list(&suffix[ix..]) && (delim == b'*' || delim == b'-' || index == 1)
         })
     }
 
@@ -3029,5 +3033,20 @@ mod test {
             assert_eq!(title.as_ref(), "SWAG");
         }
         assert!(link_tag_count > 0);
+    }
+
+    #[test]
+    fn nonstandard_taskitems() {
+        fn parse_nonstandard(s: &str) -> String {
+            let mut opts = Options::empty();
+            opts.insert(Options::ENABLE_TASKLISTS);
+            let mut buf = String::new();
+            crate::html::push_html(&mut buf, Parser::new_ext(s, opts));
+            buf
+        }
+
+        let test_str1 = "[ ] a\n    [x] b";
+        let test_str2 = "- [ ] a\n  - [x] b";
+        assert_eq!(parse_nonstandard(test_str1), parse_nonstandard(test_str2));
     }
 }
