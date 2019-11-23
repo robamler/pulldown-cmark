@@ -205,7 +205,6 @@ enum ItemBody {
     Rule,
     Heading(u32), // heading level
     FencedCodeBlock(CowIndex),
-    IndentCodeBlock,
     Html,
     BlockQuote,
     List(bool, u8, u64), // is_tight, list character, list start index
@@ -395,12 +394,6 @@ impl<'a> FirstPass<'a> {
         let remaining_space = line_start.remaining_space();
 
         let indent = line_start.scan_space_upto(4);
-        if indent == 4 {
-            let ix = start_ix + line_start.bytes_scanned();
-            let remaining_space = line_start.remaining_space();
-            return self.parse_indented_code_block(ix, remaining_space);
-        }
-
         let ix = start_ix + line_start.bytes_scanned();
 
         // HTML Blocks
@@ -948,57 +941,6 @@ impl<'a> FirstPass<'a> {
             ix = next_line_ix;
             remaining_space = line_start.remaining_space();
         }
-        ix
-    }
-
-    fn parse_indented_code_block(&mut self, start_ix: usize, mut remaining_space: usize) -> usize {
-        self.tree.append(Item {
-            start: start_ix,
-            end: 0, // will get set later
-            body: ItemBody::IndentCodeBlock,
-        });
-        self.tree.push();
-        let bytes = self.text.as_bytes();
-        let mut last_nonblank_child = TreePointer::Nil;
-        let mut last_nonblank_ix = 0;
-        let mut end_ix = 0;
-        let mut last_line_blank = false;
-
-        let mut ix = start_ix;
-        loop {
-            let line_start_ix = ix;
-            ix += scan_nextline(&bytes[ix..]);
-            self.append_code_text(remaining_space, line_start_ix, ix);
-            // TODO(spec clarification): should we synthesize newline at EOF?
-
-            if !last_line_blank {
-                last_nonblank_child = self.tree.cur();
-                last_nonblank_ix = ix;
-                end_ix = ix;
-            }
-
-            let mut line_start = LineStart::new(&bytes[ix..]);
-            let n_containers = scan_containers(&self.tree, &mut line_start);
-            if n_containers < self.tree.spine_len()
-                || !(line_start.scan_space(4) || line_start.is_at_eol())
-            {
-                break;
-            }
-            let next_line_ix = ix + line_start.bytes_scanned();
-            if next_line_ix == self.text.len() {
-                break;
-            }
-            ix = next_line_ix;
-            remaining_space = line_start.remaining_space();
-            last_line_blank = scan_blank_line(&bytes[ix..]).is_some();
-        }
-
-        // Trim trailing blank lines.
-        if let TreePointer::Valid(child) = last_nonblank_child {
-            self.tree[child].next = TreePointer::Nil;
-            self.tree[child].item.end = last_nonblank_ix;
-        }
-        self.pop(end_ix);
         ix
     }
 
@@ -2681,7 +2623,6 @@ fn item_to_tag<'a>(item: &Item, allocs: &Allocations<'a>) -> Tag<'a> {
         }
         ItemBody::Heading(level) => Tag::Heading(level),
         ItemBody::FencedCodeBlock(cow_ix) => Tag::CodeBlock(allocs[cow_ix].clone()),
-        ItemBody::IndentCodeBlock => Tag::CodeBlock("".into()),
         ItemBody::BlockQuote => Tag::BlockQuote,
         ItemBody::List(_, c, listitem_start) => {
             if c == b'.' || c == b')' {
@@ -2728,7 +2669,6 @@ fn item_to_event<'a>(item: Item, text: &'a str, allocs: &Allocations<'a>) -> Eve
         }
         ItemBody::Heading(level) => Tag::Heading(level),
         ItemBody::FencedCodeBlock(cow_ix) => Tag::CodeBlock(allocs[cow_ix].clone()),
-        ItemBody::IndentCodeBlock => Tag::CodeBlock("".into()),
         ItemBody::BlockQuote => Tag::BlockQuote,
         ItemBody::List(_, c, listitem_start) => {
             if c == b'.' || c == b')' {

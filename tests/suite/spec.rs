@@ -7,7 +7,7 @@ use super::test_markdown_html;
 fn spec_test_1() {
     let original = r##"	foo	baz		bim
 "##;
-    let expected = r##"<pre><code>foo	baz		bim
+    let expected = r##"<p>foo	baz		bim
 </code></pre>
 "##;
 
@@ -18,7 +18,7 @@ fn spec_test_1() {
 fn spec_test_2() {
     let original = r##"  	foo	baz		bim
 "##;
-    let expected = r##"<pre><code>foo	baz		bim
+    let expected = r##"<p>foo	baz		bim
 </code></pre>
 "##;
 
@@ -30,7 +30,7 @@ fn spec_test_3() {
     let original = r##"    a	a
     ὐ	a
 "##;
-    let expected = r##"<pre><code>a	a
+    let expected = r##"<p>a	a
 ὐ	a
 </code></pre>
 "##;
@@ -64,7 +64,7 @@ fn spec_test_5() {
     let expected = r##"<ul>
 <li>
 <p>foo</p>
-<pre><code>  bar
+<p>  bar
 </code></pre>
 </li>
 </ul>
@@ -78,7 +78,7 @@ fn spec_test_6() {
     let original = r##">		foo
 "##;
     let expected = r##"<blockquote>
-<pre><code>  foo
+<p>  foo
 </code></pre>
 </blockquote>
 "##;
@@ -90,13 +90,7 @@ fn spec_test_6() {
 fn spec_test_7() {
     let original = r##"-		foo
 "##;
-    let expected = r##"<ul>
-<li>
-<pre><code>  foo
-</code></pre>
-</li>
-</ul>
-"##;
+    let expected = r##"<ul><li>foo</li></ul>"##;
 
     test_markdown_html(original, expected);
 }
@@ -106,7 +100,7 @@ fn spec_test_8() {
     let original = r##"    foo
 	bar
 "##;
-    let expected = r##"<pre><code>foo
+    let expected = r##"<p>foo
 bar
 </code></pre>
 "##;
@@ -236,9 +230,7 @@ fn spec_test_17() {
 fn spec_test_18() {
     let original = r##"    ***
 "##;
-    let expected = r##"<pre><code>***
-</code></pre>
-"##;
+    let expected = r##"<hr>"##;
 
     test_markdown_html(original, expected);
 }
@@ -501,9 +493,7 @@ fn spec_test_38() {
 fn spec_test_39() {
     let original = r##"    # foo
 "##;
-    let expected = r##"<pre><code># foo
-</code></pre>
-"##;
+    let expected = r##"<h1>foo</h1>"##;
 
     test_markdown_html(original, expected);
 }
@@ -713,13 +703,7 @@ fn spec_test_55() {
     Foo
 ---
 "##;
-    let expected = r##"<pre><code>Foo
----
-
-Foo
-</code></pre>
-<hr />
-"##;
+    let expected = r##"<p>Foo ---</p> <h2>Foo</h2>"##;
 
     test_markdown_html(original, expected);
 }
@@ -922,10 +906,7 @@ fn spec_test_70() {
     let original = r##"    foo
 ---
 "##;
-    let expected = r##"<pre><code>foo
-</code></pre>
-<hr />
-"##;
+    let expected = r##"<h2>foo</h2>"##;
 
     test_markdown_html(original, expected);
 }
@@ -1026,7 +1007,7 @@ fn spec_test_77() {
     let original = r##"    a simple
       indented code block
 "##;
-    let expected = r##"<pre><code>a simple
+    let expected = r##"<p>a simple
   indented code block
 </code></pre>
 "##;
@@ -1077,12 +1058,7 @@ fn spec_test_80() {
 
     - one
 "##;
-    let expected = r##"<pre><code>&lt;a/&gt;
-*hi*
-
-- one
-</code></pre>
-"##;
+    let expected = r##"<a>*hi* <p>- one</p></a>"##;
 
     test_markdown_html(original, expected);
 }
@@ -1097,15 +1073,7 @@ fn spec_test_81() {
  
     chunk3
 "##;
-    let expected = r##"<pre><code>chunk1
-
-chunk2
-
-
-
-chunk3
-</code></pre>
-"##;
+    let expected = r##"<p>chunk1</p> <p>chunk2</p> <p>chunk3</p>"##;
 
     test_markdown_html(original, expected);
 }
@@ -1116,11 +1084,7 @@ fn spec_test_82() {
       
       chunk2
 "##;
-    let expected = r##"<pre><code>chunk1
-  
-  chunk2
-</code></pre>
-"##;
+    let expected = r##"<p>chunk1</p> <p>chunk2</p>"##;
 
     test_markdown_html(original, expected);
 }
@@ -1143,10 +1107,7 @@ fn spec_test_84() {
     let original = r##"    foo
 bar
 "##;
-    let expected = r##"<pre><code>foo
-</code></pre>
-<p>bar</p>
-"##;
+    let expected = r##"<p>foo bar</p>"##;
 
     test_markdown_html(original, expected);
 }
@@ -1160,14 +1121,8 @@ Heading
     foo
 ----
 "##;
-    let expected = r##"<h1>Heading</h1>
-<pre><code>foo
-</code></pre>
-<h2>Heading</h2>
-<pre><code>foo
-</code></pre>
-<hr />
-"##;
+    let expected = r##"<h1>Heading</h1> <h2>foo
+Heading</h2> <h2>foo</h2>"##;
 
     test_markdown_html(original, expected);
 }
@@ -1177,7 +1132,7 @@ fn spec_test_86() {
     let original = r##"        foo
     bar
 "##;
-    let expected = r##"<pre><code>    foo
+    let expected = r##"<p>    foo
 bar
 </code></pre>
 "##;
@@ -1193,7 +1148,7 @@ fn spec_test_87() {
     
 
 "##;
-    let expected = r##"<pre><code>foo
+    let expected = r##"<p>foo
 </code></pre>
 "##;
 
@@ -1204,7 +1159,7 @@ fn spec_test_87() {
 fn spec_test_88() {
     let original = r##"    foo  
 "##;
-    let expected = r##"<pre><code>foo  
+    let expected = r##"<p>foo  
 </code></pre>
 "##;
 
@@ -1437,11 +1392,8 @@ fn spec_test_104() {
     aaa
     ```
 "##;
-    let expected = r##"<pre><code>```
-aaa
-```
-</code></pre>
-"##;
+    let expected = r##"<pre><code>aaa
+</code></pre>"##;
 
     test_markdown_html(original, expected);
 }
@@ -2170,10 +2122,7 @@ fn spec_test_152() {
 
     <!-- foo -->
 "##;
-    let expected = r##"  <!-- foo -->
-<pre><code>&lt;!-- foo --&gt;
-</code></pre>
-"##;
+    let expected = r##"<!-- foo --> <!-- foo -->"##;
 
     test_markdown_html(original, expected);
 }
@@ -2184,10 +2133,7 @@ fn spec_test_153() {
 
     <div>
 "##;
-    let expected = r##"  <div>
-<pre><code>&lt;div&gt;
-</code></pre>
-"##;
+    let expected = r##"<div><div></div></div>"##;
 
     test_markdown_html(original, expected);
 }
@@ -2308,15 +2254,7 @@ fn spec_test_160() {
 
 </table>
 "##;
-    let expected = r##"<table>
-  <tr>
-<pre><code>&lt;td&gt;
-  Hi
-&lt;/td&gt;
-</code></pre>
-  </tr>
-</table>
-"##;
+    let expected = r##"<table><tbody><tr><td>Hi</td></tr></tbody></table>"##;
 
     test_markdown_html(original, expected);
 }
@@ -2570,10 +2508,7 @@ fn spec_test_180() {
 
 [foo]
 "##;
-    let expected = r##"<pre><code>[foo]: /url &quot;title&quot;
-</code></pre>
-<p>[foo]</p>
-"##;
+    let expected = r##"<p><a href="/url" title="title">foo</a></p>"##;
 
     test_markdown_html(original, expected);
 }
@@ -2780,10 +2715,7 @@ fn spec_test_195() {
     let original = r##"    aaa
 bbb
 "##;
-    let expected = r##"<pre><code>aaa
-</code></pre>
-<p>bbb</p>
-"##;
+    let expected = r##"<p>aaa bbb</p>"##;
 
     test_markdown_html(original, expected);
 }
@@ -2872,11 +2804,7 @@ fn spec_test_201() {
     > bar
     > baz
 "##;
-    let expected = r##"<pre><code>&gt; # Foo
-&gt; bar
-&gt; baz
-</code></pre>
-"##;
+    let expected = r##"<p>&gt; # Foo &gt; bar &gt; baz</p>"##;
 
     test_markdown_html(original, expected);
 }
@@ -2950,13 +2878,7 @@ fn spec_test_206() {
     let original = r##">     foo
     bar
 "##;
-    let expected = r##"<blockquote>
-<pre><code>foo
-</code></pre>
-</blockquote>
-<pre><code>bar
-</code></pre>
-"##;
+    let expected = r##"<blockquote><p>foo bar</p></blockquote>"##;
 
     test_markdown_html(original, expected);
 }
@@ -3195,14 +3117,7 @@ fn spec_test_222() {
 
 >    not code
 "##;
-    let expected = r##"<blockquote>
-<pre><code>code
-</code></pre>
-</blockquote>
-<blockquote>
-<p>not code</p>
-</blockquote>
-"##;
+    let expected = r##"<blockquote><p>code</p></blockquote><blockquote><p>not code</p></blockquote>"##;
 
     test_markdown_html(original, expected);
 }
@@ -3216,14 +3131,7 @@ with two lines.
 
 > A block quote.
 "##;
-    let expected = r##"<p>A paragraph
-with two lines.</p>
-<pre><code>indented code
-</code></pre>
-<blockquote>
-<p>A block quote.</p>
-</blockquote>
-"##;
+    let expected = r##"<p>A paragraph with two lines.</p> <p>indented code</p> <blockquote><p>A block quote.</p></blockquote>"##;
 
     test_markdown_html(original, expected);
 }
@@ -3237,18 +3145,7 @@ fn spec_test_224() {
 
     > A block quote.
 "##;
-    let expected = r##"<ol>
-<li>
-<p>A paragraph
-with two lines.</p>
-<pre><code>indented code
-</code></pre>
-<blockquote>
-<p>A block quote.</p>
-</blockquote>
-</li>
-</ol>
-"##;
+    let expected = r##"<ol><li><p>A paragraph with two lines.</p> <p>indented code</p> <blockquote><p>A block quote.</p></blockquote></li></ol>"##;
 
     test_markdown_html(original, expected);
 }
@@ -3291,12 +3188,7 @@ fn spec_test_227() {
 
      two
 "##;
-    let expected = r##"<ul>
-<li>one</li>
-</ul>
-<pre><code> two
-</code></pre>
-"##;
+    let expected = r##"<ul><li>one</li></ul><p>two</p>"##;
 
     test_markdown_html(original, expected);
 }
@@ -3426,17 +3318,7 @@ fn spec_test_234() {
 
       baz
 "##;
-    let expected = r##"<ul>
-<li>
-<p>Foo</p>
-<pre><code>bar
-
-
-baz
-</code></pre>
-</li>
-</ul>
-"##;
+    let expected = r##"<ul><li><p>Foo</p> <p>bar</p> <p>baz</p></li></ul>"##;
 
     test_markdown_html(original, expected);
 }
@@ -3503,14 +3385,7 @@ fn spec_test_240() {
 
       bar
 "##;
-    let expected = r##"<ul>
-<li>
-<p>foo</p>
-<pre><code>bar
-</code></pre>
-</li>
-</ul>
-"##;
+    let expected = r##"<ul><li><p>foo</p> <p>bar</p></li></ul>"##;
 
     test_markdown_html(original, expected);
 }
@@ -3521,14 +3396,7 @@ fn spec_test_241() {
 
            bar
 "##;
-    let expected = r##"<ol start="10">
-<li>
-<p>foo</p>
-<pre><code>bar
-</code></pre>
-</li>
-</ol>
-"##;
+    let expected = r##"<ol start="10"><li><p>foo</p> <p>bar</p></li></ol>"##;
 
     test_markdown_html(original, expected);
 }
@@ -3541,12 +3409,7 @@ paragraph
 
     more code
 "##;
-    let expected = r##"<pre><code>indented code
-</code></pre>
-<p>paragraph</p>
-<pre><code>more code
-</code></pre>
-"##;
+    let expected = r##"<p>indented code</p> <p>paragraph</p> <p>more code</p>"##;
 
     test_markdown_html(original, expected);
 }
@@ -3559,16 +3422,7 @@ fn spec_test_243() {
 
        more code
 "##;
-    let expected = r##"<ol>
-<li>
-<pre><code>indented code
-</code></pre>
-<p>paragraph</p>
-<pre><code>more code
-</code></pre>
-</li>
-</ol>
-"##;
+    let expected = r##"<ol><li><p>indented code</p> <p>paragraph</p> <p>more code</p></li></ol>"##;
 
     test_markdown_html(original, expected);
 }
@@ -3581,16 +3435,7 @@ fn spec_test_244() {
 
        more code
 "##;
-    let expected = r##"<ol>
-<li>
-<pre><code> indented code
-</code></pre>
-<p>paragraph</p>
-<pre><code>more code
-</code></pre>
-</li>
-</ol>
-"##;
+    let expected = r##"<ol><li><p>indented code</p> <p>paragraph</p> <p>more code</p></li></ol>"##;
 
     test_markdown_html(original, expected);
 }
@@ -3651,18 +3496,8 @@ fn spec_test_248() {
 -
       baz
 "##;
-    let expected = r##"<ul>
-<li>foo</li>
-<li>
-<pre><code>bar
-</code></pre>
-</li>
-<li>
-<pre><code>baz
-</code></pre>
-</li>
-</ul>
-"##;
+    let expected = r##"<ul><li>foo</li> <li><pre><code>bar
+</code></pre></li><li>baz</li></ul>"##;
 
     test_markdown_html(original, expected);
 }
@@ -3781,18 +3616,7 @@ fn spec_test_256() {
 
      > A block quote.
 "##;
-    let expected = r##"<ol>
-<li>
-<p>A paragraph
-with two lines.</p>
-<pre><code>indented code
-</code></pre>
-<blockquote>
-<p>A block quote.</p>
-</blockquote>
-</li>
-</ol>
-"##;
+    let expected = r##"<ol><li><p>A paragraph with two lines.</p> <p>indented code</p> <blockquote><p>A block quote.</p></blockquote></li></ol>"##;
 
     test_markdown_html(original, expected);
 }
@@ -3806,18 +3630,7 @@ fn spec_test_257() {
 
       > A block quote.
 "##;
-    let expected = r##"<ol>
-<li>
-<p>A paragraph
-with two lines.</p>
-<pre><code>indented code
-</code></pre>
-<blockquote>
-<p>A block quote.</p>
-</blockquote>
-</li>
-</ol>
-"##;
+    let expected = r##"<ol><li><p>A paragraph with two lines.</p> <p>indented code</p> <blockquote><p>A block quote.</p></blockquote></li></ol>"##;
 
     test_markdown_html(original, expected);
 }
@@ -3831,18 +3644,7 @@ fn spec_test_258() {
 
        > A block quote.
 "##;
-    let expected = r##"<ol>
-<li>
-<p>A paragraph
-with two lines.</p>
-<pre><code>indented code
-</code></pre>
-<blockquote>
-<p>A block quote.</p>
-</blockquote>
-</li>
-</ol>
-"##;
+    let expected = r##"<ol><li><p>A paragraph with two lines.</p> <p>indented code</p> <blockquote><p>A block quote.</p></blockquote></li></ol>"##;
 
     test_markdown_html(original, expected);
 }
@@ -3856,14 +3658,7 @@ fn spec_test_259() {
 
         > A block quote.
 "##;
-    let expected = r##"<pre><code>1.  A paragraph
-    with two lines.
-
-        indented code
-
-    &gt; A block quote.
-</code></pre>
-"##;
+    let expected = r##"<p>1. A paragraph with two lines.</p> <p>indented code</p> <p>&gt; A block quote.</p>"##;
 
     test_markdown_html(original, expected);
 }
@@ -3877,18 +3672,7 @@ with two lines.
 
       > A block quote.
 "##;
-    let expected = r##"<ol>
-<li>
-<p>A paragraph
-with two lines.</p>
-<pre><code>indented code
-</code></pre>
-<blockquote>
-<p>A block quote.</p>
-</blockquote>
-</li>
-</ol>
-"##;
+    let expected = r##"<ol><li><p>A paragraph with two lines.</p> <p>indented code</p> <blockquote><p>A block quote.</p></blockquote></li></ol>"##;
 
     test_markdown_html(original, expected);
 }
@@ -4248,19 +4032,7 @@ fn spec_test_279() {
 
     code
 "##;
-    let expected = r##"<ul>
-<li>
-<p>foo</p>
-<p>notcode</p>
-</li>
-<li>
-<p>foo</p>
-</li>
-</ul>
-<!-- -->
-<pre><code>code
-</code></pre>
-"##;
+    let expected = r##"<ul><li><p>foo</p> <p>notcode</p></li><li><p>foo</p></li></ul><!-- --> <p>code</p>"##;
 
     test_markdown_html(original, expected);
 }
@@ -4341,17 +4113,7 @@ fn spec_test_283() {
 
     3. c
 "##;
-    let expected = r##"<ol>
-<li>
-<p>a</p>
-</li>
-<li>
-<p>b</p>
-</li>
-</ol>
-<pre><code>3. c
-</code></pre>
-"##;
+    let expected = r##"<ol><li><p>a</p></li><li><p>b</p></li></ol><p>3. c</p>"##;
 
     test_markdown_html(original, expected);
 }
@@ -4735,9 +4497,7 @@ fn spec_test_303() {
 fn spec_test_304() {
     let original = r##"    \[\]
 "##;
-    let expected = r##"<pre><code>\[\]
-</code></pre>
-"##;
+    let expected = r##"<p>[]</p>"##;
 
     test_markdown_html(original, expected);
 }
@@ -4939,9 +4699,7 @@ fn spec_test_321() {
 fn spec_test_322() {
     let original = r##"    f&ouml;f&ouml;
 "##;
-    let expected = r##"<pre><code>f&amp;ouml;f&amp;ouml;
-</code></pre>
-"##;
+    let expected = r##"<p>föfö</p>"##;
 
     test_markdown_html(original, expected);
 }
