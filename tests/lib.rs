@@ -3,9 +3,9 @@ extern crate html5ever;
 #[macro_use]
 extern crate lazy_static;
 
-use html5ever::rcdom::{Handle, NodeData, RcDom};
 use html5ever::serialize::{serialize, SerializeOpts};
 use html5ever::{driver as html, QualName};
+use markup5ever_rcdom::{Handle, NodeData, RcDom, SerializableHandle};
 use pulldown_cmark::{Options, Parser};
 
 use regex::Regex;
@@ -114,7 +114,7 @@ fn make_html_parser() -> html::Parser<RcDom> {
 fn normalize_html(s: &str) -> String {
     let parser = make_html_parser();
     let dom = parser.one(s);
-    let body = normalize_dom(&dom);
+    let body: SerializableHandle = normalize_dom(&dom).into();
     let opts = SerializeOpts::default();
     let mut ret_val = Vec::new();
     serialize(&mut ret_val, &body, opts)
